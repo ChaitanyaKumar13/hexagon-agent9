@@ -32,7 +32,7 @@ BRANDING = {
     "navy_bg": "#0C2C40",
     "navy_panel": "#123B54",
     "text_light": "#1A1A1A",
-    "logo_path": logo.png,     # e.g. "logo.png" placed in the repo root
+    "logo_path": "logo.png",     # e.g. "logo.png" placed in the repo root
 }
 
 # Target segments per manager input. Add a new industry by adding a line here.
