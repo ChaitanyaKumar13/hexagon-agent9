@@ -32,7 +32,7 @@ BRANDING = {
     "navy_bg": "#0C2C40",
     "navy_panel": "#123B54",
     "text_light": "#1A1A1A",
-    "logo_path": "logo.png",     # e.g. "logo.png" placed in the repo root
+    "logo_path": None,     # e.g. "logo.png" placed in the repo root
 }
 
 # Target segments per manager input. Add a new industry by adding a line here.
@@ -357,6 +357,10 @@ Rules you must apply:
 - Remove AI-typical words and phrases entirely: "delve", "leverage", "unlock", "elevate", \
 "seamless", "cutting-edge", "game-changer", "revolutionize", "in today's fast-paced world", \
 "look no further", "unleash", "empower", "robust", "harness the power".
+- Kill the "isn't a X. It's a Y." construction and its variants ("not just X - it's Y", \
+"more than a X, it's a Y") wherever they appear, especially as closing lines. Also rewrite \
+mirrored-antithesis closers ("Stale X is A. Fresh X is B.") into a single plain sentence. \
+A closing line should sound like a person, not a slogan generator.
 - Vary sentence length. Mix short punchy sentences with longer ones. Never let three \
 sentences in a row follow the same structure.
 - Cut every sentence that says nothing concrete. If a line could apply to any product, \
