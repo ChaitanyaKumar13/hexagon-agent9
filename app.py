@@ -88,9 +88,22 @@ st.markdown(
     header[data-testid="stHeader"] {{background: transparent;}}
 
     html, body, .stApp, .stApp * {{ font-family: 'Hanken Grotesk', -apple-system, sans-serif; }}
-    .stApp {{ background: {BG}; }}
+    /* Restore Streamlit's icon font (otherwise icons render as raw text) */
+    [data-testid="stIconMaterial"], span[translate="no"], .material-symbols-rounded {{
+        font-family: 'Material Symbols Rounded' !important;
+    }}
+    .stApp {{
+        background:
+            radial-gradient(1100px 560px at 88% -8%, rgba(111,214,255,0.10), transparent 60%),
+            radial-gradient(900px 520px at -8% 108%, rgba(201,221,40,0.07), transparent 55%),
+            {BG};
+    }}
     .stApp, .stApp p, .stApp li, .stApp label {{ color: {BODY}; }}
     .stApp p, .stApp li {{ font-size: 1.02rem; line-height: 1.65; }}
+    hr {{ border-color: rgba(255,255,255,0.08) !important; }}
+    ::-webkit-scrollbar {{ width: 10px; height: 10px; }}
+    ::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.14); border-radius: 8px; }}
+    ::-webkit-scrollbar-track {{ background: transparent; }}
 
     h1 {{
         font-weight: 800 !important;
@@ -167,6 +180,25 @@ st.markdown(
     .stTabs [data-baseweb="tab"]:hover {{ background: rgba(255,255,255,0.07); }}
     .stTabs [aria-selected="true"] {{ background: rgba(201, 221, 40, 0.12); }}
     .stTabs [data-baseweb="tab-highlight"] {{ background-color: {EYEBROW}; }}
+    /* Output panels as cards */
+    .stTabs [data-baseweb="tab-panel"] {{
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        padding: 1.4rem 1.6rem;
+        margin-top: 0.9rem;
+    }}
+    /* Info callout + status expander */
+    [data-testid="stAlert"] {{
+        background: rgba(111,214,255,0.08);
+        border: 1px solid rgba(111,214,255,0.28);
+        border-radius: 12px;
+    }}
+    [data-testid="stExpander"] {{
+        border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.02);
+    }}
 
     /* Inputs: soft borders, lime focus ring */
     [data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"] > div {{
