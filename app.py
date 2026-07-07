@@ -200,15 +200,33 @@ st.markdown(
     }}
 
     /* Tabs: pill style with smooth hover */
-    .stTabs [data-baseweb="tab-list"] {{ gap: 6px; }}
+    /* Tabs: roomy pills that wrap instead of cramming into one scrolling row */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 10px;
+        flex-wrap: wrap;
+        row-gap: 10px;
+        margin-bottom: 4px;
+    }}
     .stTabs [data-baseweb="tab"] {{
         border-radius: 999px;
-        padding: 6px 16px;
-        transition: background 0.2s ease, color 0.2s ease;
+        padding: 9px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.03);
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }}
-    .stTabs [data-baseweb="tab"]:hover {{ background: rgba(255,255,255,0.07); }}
-    .stTabs [aria-selected="true"] {{ background: rgba(201, 221, 40, 0.12); }}
-    .stTabs [data-baseweb="tab-highlight"] {{ background-color: {EYEBROW}; }}
+    .stTabs [data-baseweb="tab"]:hover {{
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.22);
+    }}
+    .stTabs [aria-selected="true"] {{
+        background: rgba(201, 221, 40, 0.14);
+        border-color: rgba(201, 221, 40, 0.55);
+    }}
+    /* Pills replace the underline indicator */
+    .stTabs [data-baseweb="tab-highlight"] {{ display: none; }}
+    .stTabs [data-baseweb="tab-border"] {{ display: none; }}
     /* Output panels as cards */
     .stTabs [data-baseweb="tab-panel"] {{
         background: rgba(255,255,255,0.03);
@@ -374,6 +392,9 @@ calendar emoji.
 [Expert Name]".
 7. Finish with 4-6 hashtags mixing product, technology and market tags, e.g. \
 #LeicaRTC360 #RealityCapture #LaserScanning #Surveying #HexagonIndia.
+8. Write each post exactly as it would be published - never include structural labels \
+such as "Hook:", "Body:" or "Closer:" inside the post text. After each post's hashtags, \
+add one separate italic line beginning "Visual suggestion:" describing the creative.
 
 Follow the campaign strategy brief you are given. Produce exactly the sections requested, \
 in clean Markdown with clear ## headings."""
@@ -545,22 +566,44 @@ def split_sections(doc: str) -> dict:
 
 
 def linkedin_posts(md: str) -> list[tuple[str, str, str]]:
-    """Parse the LinkedIn section into (label, hook_line, visual_suggestion) tuples."""
+    """Parse the LinkedIn section into (label, hook_line, visual_suggestion) tuples.
+
+    Tolerant of format drift between runs: post headers may be '**Post 1 - x**',
+    '### Post 1 - x' or plain 'Post 1'; hooks may be labelled 'Hook:' or just be
+    the first prose line; visuals may be '**Visual:**' or 'Visual suggestion:'.
+    """
     import re
 
-    labels = re.findall(r"\*\*(Post\s*\d+[^*]*)\*\*", md)
-    bodies = re.split(r"\*\*Post\s*\d+[^*]*\*\*", md)[1:]
-    posts = []
-    for label, body in zip(labels, bodies):
+    header = re.compile(r"^(?:#{2,6}\s*|\*\*)?\s*Post\s*(\d+)[^\n]*", re.MULTILINE)
+    matches = list(header.finditer(md))
+    posts: list[tuple[str, str, str]] = []
+    for i, m in enumerate(matches):
+        label = m.group(0).strip().strip("*#").strip()
+        start, end = m.end(), matches[i + 1].start() if i + 1 < len(matches) else len(md)
+        body = md[start:end]
+
         hook = ""
-        for line in body.splitlines():
-            clean = line.strip()
-            if clean and not clean.startswith(("#", "**Visual", "✅", "✔", "📅")):
-                hook = clean.lstrip("*_ ").rstrip("*_ ")
+        hm = re.search(r"\*{0,2}Hook:?\*{0,2}\s*(.+)", body)
+        if hm:
+            hook = hm.group(1).strip().strip("*_ ")
+        else:
+            for line in body.splitlines():
+                clean = line.strip()
+                if not clean or clean.startswith(("#", "✅", "✔", "📅", "---")):
+                    continue
+                lowered = clean.lstrip("*_ ").lower()
+                if lowered.startswith(("visual", "closer", "speak to", "the result")):
+                    continue
+                hook = clean.strip("*_ ")
                 break
-        visual_match = re.search(r"\*\*Visual:\*\*\s*(.+)", body)
-        visual = visual_match.group(1).strip() if visual_match else ""
-        posts.append((label.strip(), hook, visual))
+
+        vm = re.search(
+            r"\*{0,2}_?\s*Visual(?:\s+suggestion)?\s*:?\s*_?\*{0,2}:?\s*(.+)",
+            body,
+            re.IGNORECASE,
+        )
+        visual = vm.group(1).strip().strip("*_ ") if vm else ""
+        posts.append((label, hook, visual))
     return posts
 
 
@@ -585,6 +628,24 @@ def creative_card_html(product: str, hook: str, visual: str) -> str:
         {visual_note}
     </div>
     """
+
+
+def short_label(name: str) -> str:
+    """Compact tab labels so seven tabs fit comfortably in one row."""
+    n = name.lower()
+    if "overview" in n:
+        return "Overview"
+    if "linkedin" in n:
+        return "LinkedIn"
+    if "email" in n:
+        return "Email"
+    if "webinar" in n:
+        return "Webinar"
+    if "exhibition" in n or "launch" in n:
+        return "Exhibition"
+    if "seo" in n:
+        return "SEO"
+    return name
 
 
 # ---------------------------------------------------------------------------
@@ -665,10 +726,21 @@ if "result" in st.session_state:
     result = st.session_state["result"]
     sections = split_sections(result["final"])
 
-    tab_names = list(sections.keys()) + ["Strategy Brief"]
-    tabs = st.tabs(tab_names)
-    for tab, name in zip(tabs[:-1], sections.keys()):
+    section_names = list(sections.keys())
+    display_names = [short_label(n) for n in section_names]
+    # Guard against duplicate labels (Streamlit requires unique tab names)
+    seen: dict[str, int] = {}
+    for i, d in enumerate(display_names):
+        if d in seen:
+            seen[d] += 1
+            display_names[i] = f"{d} {seen[d]}"
+        else:
+            seen[d] = 1
+
+    tabs = st.tabs(display_names + ["Strategy Brief"])
+    for tab, name in zip(tabs[:-1], section_names):
         with tab:
+            st.markdown(f"### {name}")
             st.markdown(sections[name])
             if "linkedin" in name.lower():
                 posts = linkedin_posts(sections[name])
