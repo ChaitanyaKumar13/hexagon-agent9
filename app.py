@@ -32,7 +32,7 @@ BRANDING = {
     "navy_bg": "#0C2C40",
     "navy_panel": "#123B54",
     "text_light": "#1A1A1A",
-    "logo_path": "logo.png",     # e.g. "logo.png" placed in the repo root
+    "logo_path": None,     # e.g. "logo.png" placed in the repo root
 }
 
 # Target segments per manager input. Add a new industry by adding a line here.
@@ -79,42 +79,108 @@ else:
 st.markdown(
     f"""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&display=swap');
+
     /* Hide Streamlit's default chrome for a clean client-facing demo */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     .stAppDeployButton {{display: none;}}
     header[data-testid="stHeader"] {{background: transparent;}}
+
+    html, body, .stApp, .stApp * {{ font-family: 'Hanken Grotesk', -apple-system, sans-serif; }}
     .stApp {{ background: {BG}; }}
     .stApp, .stApp p, .stApp li, .stApp label {{ color: {BODY}; }}
-    h1 {{ letter-spacing: -0.02em; }}
-    h1, h2, h3 {{ color: {HEADING} !important; font-weight: 700; }}
-    section[data-testid="stSidebar"] {{ background: {PANEL}; }}
+    .stApp p, .stApp li {{ font-size: 1.02rem; line-height: 1.65; }}
+
+    h1 {{
+        font-weight: 800 !important;
+        letter-spacing: -0.03em;
+        background: linear-gradient(100deg, #FFFFFF 55%, {LIME} 85%, #6FD6FF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }}
+    h2, h3 {{ color: {HEADING} !important; font-weight: 700; letter-spacing: -0.01em; }}
+
+    section[data-testid="stSidebar"] {{
+        background: {PANEL};
+        border-right: 1px solid rgba(255,255,255,0.06);
+    }}
     section[data-testid="stSidebar"] * {{ color: {BODY}; }}
+
+    /* Animated brand gradient bar */
     .hx-topbar {{
         height: 6px;
-        background: {TOPBAR};
+        background: linear-gradient(90deg, {LIME}, #6FD6FF, {ACCENT}, {LIME});
+        background-size: 300% 100%;
+        animation: hxflow 9s ease infinite;
         border-radius: 3px;
-        margin-bottom: 1.2rem;
+        margin-bottom: 1.4rem;
     }}
+    @keyframes hxflow {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
+    }}
+
+    /* Content entrance motion */
+    .block-container {{ animation: hxrise 0.55s cubic-bezier(0.22, 1, 0.36, 1); }}
+    @keyframes hxrise {{
+        from {{ opacity: 0; transform: translateY(14px); }}
+        to   {{ opacity: 1; transform: translateY(0); }}
+    }}
+
     .hx-eyebrow {{
         color: {EYEBROW};
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         margin-bottom: 0.2rem;
     }}
-    .hx-sub {{ color: {SUB}; font-size: 0.95rem; margin-top: -0.4rem; }}
-    div.stButton > button {{
+    .hx-sub {{ color: {SUB}; font-size: 0.98rem; margin-top: -0.4rem; }}
+
+    /* Buttons: lift + glow on hover */
+    div.stButton > button, div.stDownloadButton > button {{
         background: {BTN};
         color: {BTN_TEXT};
         border: none;
         font-weight: 700;
-        padding: 0.6rem 1.6rem;
-        border-radius: 4px;
+        padding: 0.65rem 1.7rem;
+        border-radius: 8px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }}
-    div.stButton > button:hover {{ background: {BTN_HOVER}; color: {BTN_TEXT}; }}
+    div.stButton > button:hover, div.stDownloadButton > button:hover {{
+        background: {BTN_HOVER};
+        color: {BTN_TEXT};
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgba(201, 221, 40, 0.25);
+    }}
+
+    /* Tabs: pill style with smooth hover */
+    .stTabs [data-baseweb="tab-list"] {{ gap: 6px; }}
+    .stTabs [data-baseweb="tab"] {{
+        border-radius: 999px;
+        padding: 6px 16px;
+        transition: background 0.2s ease, color 0.2s ease;
+    }}
+    .stTabs [data-baseweb="tab"]:hover {{ background: rgba(255,255,255,0.07); }}
+    .stTabs [aria-selected="true"] {{ background: rgba(201, 221, 40, 0.12); }}
     .stTabs [data-baseweb="tab-highlight"] {{ background-color: {EYEBROW}; }}
+
+    /* Inputs: soft borders, lime focus ring */
+    [data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"] > div {{
+        border-radius: 8px !important;
+        border-color: rgba(255,255,255,0.12) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }}
+    [data-baseweb="input"]:focus-within, [data-baseweb="textarea"]:focus-within {{
+        border-color: {LIME} !important;
+        box-shadow: 0 0 0 3px rgba(201, 221, 40, 0.18);
+    }}
+
+    /* Status/progress accent */
+    [data-testid="stStatusWidget"], .stSpinner > div {{ border-color: {LIME} transparent transparent transparent; }}
     </style>
     """,
     unsafe_allow_html=True,
