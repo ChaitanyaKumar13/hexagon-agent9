@@ -32,7 +32,7 @@ BRANDING = {
     "navy_bg": "#0C2C40",
     "navy_panel": "#123B54",
     "text_light": "#1A1A1A",
-    "logo_path": "logo.png",     # e.g. "logo.png" placed in the repo root
+    "logo_path": None,     # e.g. "logo.png" placed in the repo root
 }
 
 # Target segments per manager input. Add a new industry by adding a line here.
@@ -45,7 +45,7 @@ SECTORS = [
 ]
 
 st.set_page_config(
-    page_title="Agent 9 · Marketing Campaign Agent",
+    page_title="Hexagon_AG9 · Marketing Campaign Agent",
     page_icon="⬡",
     layout="wide",
 )
@@ -119,7 +119,31 @@ st.markdown(
         background: {PANEL};
         border-right: 1px solid rgba(255,255,255,0.06);
     }}
+    /* Manager request: inputs panel = 30% of screen, agent screen = 70% */
+    @media (min-width: 900px) {{
+        section[data-testid="stSidebar"] {{
+            width: 30vw !important;
+            min-width: 30vw !important;
+            max-width: 30vw !important;
+        }}
+    }}
     section[data-testid="stSidebar"] * {{ color: {BODY}; }}
+
+    /* Input text visibility (Windows renders the default too dull) */
+    .stTextInput input, .stTextArea textarea, [data-baseweb="input"] input,
+    [data-baseweb="textarea"] textarea {{
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        background: rgba(255,255,255,0.07) !important;
+        caret-color: {LIME};
+        font-size: 1rem !important;
+    }}
+    .stTextInput input::placeholder, .stTextArea textarea::placeholder {{
+        color: rgba(215,227,236,0.45) !important;
+        -webkit-text-fill-color: rgba(215,227,236,0.45) !important;
+    }}
+    [data-baseweb="select"] * {{ color: #FFFFFF !important; }}
+    [data-baseweb="select"] > div {{ background: rgba(255,255,255,0.07) !important; }}
 
     /* Animated brand gradient bar */
     .hx-topbar {{
@@ -520,6 +544,49 @@ def split_sections(doc: str) -> dict:
     return sections
 
 
+def linkedin_posts(md: str) -> list[tuple[str, str, str]]:
+    """Parse the LinkedIn section into (label, hook_line, visual_suggestion) tuples."""
+    import re
+
+    labels = re.findall(r"\*\*(Post\s*\d+[^*]*)\*\*", md)
+    bodies = re.split(r"\*\*Post\s*\d+[^*]*\*\*", md)[1:]
+    posts = []
+    for label, body in zip(labels, bodies):
+        hook = ""
+        for line in body.splitlines():
+            clean = line.strip()
+            if clean and not clean.startswith(("#", "**Visual", "✅", "✔", "📅")):
+                hook = clean.lstrip("*_ ").rstrip("*_ ")
+                break
+        visual_match = re.search(r"\*\*Visual:\*\*\s*(.+)", body)
+        visual = visual_match.group(1).strip() if visual_match else ""
+        posts.append((label.strip(), hook, visual))
+    return posts
+
+
+def creative_card_html(product: str, hook: str, visual: str) -> str:
+    """Render a Hexagon-style LinkedIn creative card (matches their real ad layout)."""
+    visual_note = (
+        f'<div style="margin-top:14px;font-size:0.78rem;color:#9DB4C4;font-style:italic;">'
+        f"Suggested imagery: {visual}</div>" if visual else ""
+    )
+    return f"""
+    <div style="background:linear-gradient(135deg,#0C2C40 70%,#123B54 100%);
+                border:1px solid rgba(255,255,255,0.14);border-radius:14px;
+                padding:26px 30px;max-width:560px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;right:0;width:140px;height:6px;
+                    background:linear-gradient(90deg,#C9DD28,#6FD6FF);"></div>
+        <div style="font-weight:800;letter-spacing:0.06em;color:#FFFFFF;
+                    font-size:0.95rem;">⬡ HEXAGON</div>
+        <div style="margin-top:16px;font-size:0.8rem;color:#C9DD28;
+                    letter-spacing:0.08em;text-transform:uppercase;">{product}</div>
+        <div style="margin-top:8px;font-size:1.45rem;line-height:1.25;font-weight:800;
+                    color:#FFFFFF;">{hook}</div>
+        {visual_note}
+    </div>
+    """
+
+
 # ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
@@ -531,7 +598,7 @@ st.markdown(
     f'<div class="hx-eyebrow">{BRANDING["company"]} · {BRANDING["platform"]}</div>',
     unsafe_allow_html=True,
 )
-st.title("Agent 9 — Marketing Campaign Agent")
+st.title("Hexagon_AG9 — Marketing Campaign Agent")
 st.markdown(
     '<p class="hx-sub">Proof of concept · Generates a complete campaign kit: '
     "LinkedIn, email, webinar, exhibition and SEO recommendations</p>",
@@ -603,6 +670,19 @@ if "result" in st.session_state:
     for tab, name in zip(tabs[:-1], sections.keys()):
         with tab:
             st.markdown(sections[name])
+            if "linkedin" in name.lower():
+                posts = linkedin_posts(sections[name])
+                if posts:
+                    st.markdown("---")
+                    st.markdown("**Creative previews** · Click to expand each post's suggested creative")
+                    for label, hook, visual in posts:
+                        if not hook:
+                            continue
+                        with st.expander(f"🖼️ Creative preview — {label}"):
+                            st.markdown(
+                                creative_card_html(product, hook, visual),
+                                unsafe_allow_html=True,
+                            )
     with tabs[-1]:
         st.caption("Internal strategy brief produced in Step 1 of the pipeline.")
         st.markdown(result["strategy"])
