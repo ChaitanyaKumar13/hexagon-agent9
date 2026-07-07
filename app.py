@@ -79,8 +79,14 @@ else:
 st.markdown(
     f"""
     <style>
+    /* Hide Streamlit's default chrome for a clean client-facing demo */
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+    .stAppDeployButton {{display: none;}}
+    header[data-testid="stHeader"] {{background: transparent;}}
     .stApp {{ background: {BG}; }}
     .stApp, .stApp p, .stApp li, .stApp label {{ color: {BODY}; }}
+    h1 {{ letter-spacing: -0.02em; }}
     h1, h2, h3 {{ color: {HEADING} !important; font-weight: 700; }}
     section[data-testid="stSidebar"] {{ background: {PANEL}; }}
     section[data-testid="stSidebar"] * {{ color: {BODY}; }}
