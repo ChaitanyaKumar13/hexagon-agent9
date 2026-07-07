@@ -335,14 +335,24 @@ def get_client() -> Anthropic | None:
     return Anthropic(api_key=key)
 
 
-def call_claude(client: Anthropic, system: str, prompt: str, max_tokens: int = 4000) -> str:
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=max_tokens,
-        system=system,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return "".join(block.text for block in response.content if block.type == "text")
+def call_claude(client: Anthropic, system: str, prompt: str, max_tokens: int = 12000) -> str:
+    """Call the model and return visible text.
+
+    Sonnet 5 reasons internally (adaptive thinking) before answering, and that
+    reasoning shares the max_tokens budget. Budgets are therefore generous, and
+    if a call still returns no visible text we retry once with a bigger budget.
+    """
+    for attempt, budget in enumerate([max_tokens, max_tokens * 2]):
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=budget,
+            system=system,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = "".join(block.text for block in response.content if block.type == "text")
+        if text.strip():
+            return text
+    return ""
 
 
 def run_pipeline(client: Anthropic, inputs: dict, status) -> dict:
@@ -360,14 +370,21 @@ def run_pipeline(client: Anthropic, inputs: dict, status) -> dict:
 Cover: positioning angle, top 3 buyer pain points, proof points to emphasise, tone \
 guidance, and the single most important thing every asset must communicate. \
 Keep it under 350 words.""",
-        max_tokens=1500,
+        max_tokens=6000,
     )
+    if not strategy.strip():
+        raise RuntimeError("The strategy step returned no text. Please click Generate again.")
 
     status.update(label="Step 2 of 3 · Writing campaign content…")
-    draft = call_claude(client, WRITER_SYSTEM, build_writer_prompt(inputs, strategy), 4000)
+    draft = call_claude(client, WRITER_SYSTEM, build_writer_prompt(inputs, strategy), 16000)
+    if not draft.strip():
+        raise RuntimeError("The content step returned no text. Please click Generate again.")
 
     status.update(label="Step 3 of 3 · Human editor pass…")
-    final = call_claude(client, EDITOR_SYSTEM, HUMANIZE_PROMPT.format(draft=draft), 4000)
+    final = call_claude(client, EDITOR_SYSTEM, HUMANIZE_PROMPT.format(draft=draft), 16000)
+    if not final.strip():
+        # Editor failed - fall back to the unedited draft rather than losing the kit.
+        final = draft
 
     return {"strategy": strategy, "final": final}
 
