@@ -56,6 +56,8 @@ LIME = BRANDING["lime"]
 if BRANDING["theme"] == "navy":
     BG = BRANDING["navy_bg"]
     PANEL = BRANDING["navy_panel"]
+    INPUT_BG = "#1D465E"       # solid, opaque - never inherits the OS theme
+    INPUT_TEXT = "#FFFFFF"
     HEADING = "#FFFFFF"
     BODY = "#D7E3EC"
     SUB = "#9DB4C4"
@@ -67,6 +69,8 @@ if BRANDING["theme"] == "navy":
 else:
     BG = "#FFFFFF"
     PANEL = "#F4F8FB"
+    INPUT_BG = "#EDF3F8"
+    INPUT_TEXT = "#1A1A1A"
     HEADING = BRANDING["text_light"]
     BODY = "#333333"
     SUB = "#555555"
@@ -129,21 +133,54 @@ st.markdown(
     }}
     section[data-testid="stSidebar"] * {{ color: {BODY}; }}
 
-    /* Input text visibility (Windows renders the default too dull) */
+    /* Input visibility fix.
+       Root cause of the Windows white-on-white bug: without a pinned theme,
+       Streamlit follows the viewer's OS light/dark preference, and a
+       translucent background over a LIGHT base stayed white while our text
+       was forced white. Fix: SOLID opaque backgrounds on the input AND every
+       wrapper layer, so nothing underneath can show through. Theme is also
+       pinned dark in .streamlit/config.toml. */
     .stTextInput input, .stTextArea textarea, [data-baseweb="input"] input,
-    [data-baseweb="textarea"] textarea {{
-        color: #FFFFFF !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-        background: rgba(255,255,255,0.07) !important;
+    [data-baseweb="textarea"] textarea, [data-baseweb="base-input"] input,
+    [data-baseweb="base-input"] textarea {{
+        color: {INPUT_TEXT} !important;
+        -webkit-text-fill-color: {INPUT_TEXT} !important;
+        background: {INPUT_BG} !important;
+        background-color: {INPUT_BG} !important;
         caret-color: {LIME};
         font-size: 1rem !important;
     }}
-    .stTextInput input::placeholder, .stTextArea textarea::placeholder {{
-        color: rgba(215,227,236,0.45) !important;
-        -webkit-text-fill-color: rgba(215,227,236,0.45) !important;
+    [data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="base-input"],
+    [data-baseweb="input"] > div, [data-baseweb="textarea"] > div {{
+        background: {INPUT_BG} !important;
+        background-color: {INPUT_BG} !important;
     }}
-    [data-baseweb="select"] * {{ color: #FFFFFF !important; }}
-    [data-baseweb="select"] > div {{ background: rgba(255,255,255,0.07) !important; }}
+    .stTextInput input::placeholder, .stTextArea textarea::placeholder {{
+        color: rgba(215,227,236,0.55) !important;
+        -webkit-text-fill-color: rgba(215,227,236,0.55) !important;
+    }}
+    /* Selectbox: opaque closed state + readable value */
+    [data-baseweb="select"] * {{
+        color: {INPUT_TEXT} !important;
+        -webkit-text-fill-color: {INPUT_TEXT} !important;
+    }}
+    [data-baseweb="select"] > div, [data-baseweb="select"] > div > div {{
+        background: {INPUT_BG} !important;
+        background-color: {INPUT_BG} !important;
+    }}
+    /* Selectbox dropdown menu renders in a portal OUTSIDE the sidebar - style
+       it explicitly or it also follows the viewer's OS theme */
+    [data-baseweb="popover"] [role="listbox"], [data-baseweb="menu"] {{
+        background: {PANEL} !important;
+    }}
+    [data-baseweb="popover"] [role="option"] {{
+        color: {INPUT_TEXT} !important;
+        -webkit-text-fill-color: {INPUT_TEXT} !important;
+    }}
+    [data-baseweb="popover"] [role="option"]:hover,
+    [data-baseweb="popover"] [role="option"][aria-selected="true"] {{
+        background: rgba(201,221,40,0.16) !important;
+    }}
 
     /* Animated brand gradient bar */
     .hx-topbar {{
@@ -680,8 +717,9 @@ with st.sidebar:
     preset_name = st.selectbox("Demo scenario", list(PRESETS.keys()))
     preset = PRESETS[preset_name]
 
-    product = st.text_input("Product / solution", value=preset.get("product", ""))
-
+    # Field order per manager feedback: Demo scenario -> Sector -> Product.
+    # (Side-by-side was considered but the sidebar is fixed at 30vw; two
+    # columns leave ~13vw per field and the preset names alone truncate.)
     sector_options = SECTORS + ["Other (type below)"]
     default_sector = preset.get("sector", SECTORS[0])
     sector_index = sector_options.index(default_sector) if default_sector in sector_options else 0
@@ -690,6 +728,8 @@ with st.sidebar:
         sector = st.text_input("Custom sector / industry")
     else:
         sector = sector_choice
+
+    product = st.text_input("Product / solution", value=preset.get("product", ""))
 
     audience = st.text_area("Target audience", value=preset.get("audience", ""), height=100)
     goal = st.text_input("Campaign goal", value=preset.get("goal", ""))
