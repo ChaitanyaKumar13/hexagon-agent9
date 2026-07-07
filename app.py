@@ -169,6 +169,11 @@ st.markdown(
         transform: translateY(-2px);
         box-shadow: 0 10px 26px rgba(201, 221, 40, 0.25);
     }}
+    /* Button labels render inside <p>; override the global text colour */
+    div.stButton > button p, div.stDownloadButton > button p {{
+        color: {BTN_TEXT} !important;
+        font-weight: 700;
+    }}
 
     /* Tabs: pill style with smooth hover */
     .stTabs [data-baseweb="tab-list"] {{ gap: 6px; }}
