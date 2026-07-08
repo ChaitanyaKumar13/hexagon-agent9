@@ -32,7 +32,7 @@ BRANDING = {
     "navy_bg": "#0C2C40",
     "navy_panel": "#123B54",
     "text_light": "#1A1A1A",
-    "logo_path": "logo.png",     # e.g. "logo.png" placed in the repo root
+    "logo_path": None,     # e.g. "logo.png" placed in the repo root
 }
 
 # Target segments per manager input. Add a new industry by adding a line here.
@@ -133,6 +133,14 @@ st.markdown(
     }}
     section[data-testid="stSidebar"] * {{ color: {BODY}; }}
 
+    /* Bigger, roomier inputs (manager feedback) */
+    .stTextInput input, [data-baseweb="select"] > div {{
+        min-height: 2.9rem !important;
+    }}
+    .stTextArea textarea {{
+        min-height: 120px !important;
+        padding: 0.6rem 0.75rem !important;
+    }}
     /* Input visibility fix.
        Root cause of the Windows white-on-white bug: without a pinned theme,
        Streamlit follows the viewer's OS light/dark preference, and a
@@ -303,13 +311,15 @@ st.markdown(
 )
 
 # ---------------------------------------------------------------------------
-# Demo presets - manager's priority products
+# Scenario types + Detail options (manager's product-line list, July 2026)
 # ---------------------------------------------------------------------------
 
-PRESETS = {
-    "— Select a scenario or fill manually —": {},
-    "Leica GS18 GNSS RTK Rover · Surveying & Geospatial": {
-        "product": "Leica GS18 GNSS RTK Rover",
+SCENARIO_TYPES = ["Product", "Event", "Other"]
+
+# The three original demo products keep prefilled audience/goal/message so the
+# one-click demo flow still works. Newly added product lines start blank.
+DETAIL_PRESETS = {
+    "Leica GS18 GNSS RTK Rover": {
         "sector": "Surveying & Geospatial",
         "audience": (
             "Government survey departments, town planning bodies, licensed "
@@ -322,10 +332,8 @@ PRESETS = {
             "you previously could not reach, without plumbing the pole, and cut "
             "field time on every job"
         ),
-        "event": "Regional Hexagon customer roadshow / survey department demo days",
     },
-    "IDS GeoRadar ArcSAR · Mining": {
-        "product": "IDS GeoRadar ArcSAR slope monitoring radar",
+    "IDS GeoRadar ArcSAR slope monitoring radar": {
         "sector": "Mining",
         "audience": (
             "Mine planning heads, geotechnical engineers and safety officers at "
@@ -338,10 +346,8 @@ PRESETS = {
             "wall - early warning that protects people and equipment and keeps "
             "production moving"
         ),
-        "event": "Mining safety week engagements and industry mining expos",
     },
-    "Leica RTC360 Laser Scanner · Infrastructure": {
-        "product": "Leica RTC360 3D laser scanner",
+    "Leica RTC360 3D laser scanner": {
         "sector": "Infrastructure",
         "audience": (
             "BIM heads, project directors and digital construction teams at EPC "
@@ -353,9 +359,30 @@ PRESETS = {
             "A complete high-detail scan with imagery in about two minutes per "
             "setup - document site conditions faster than the site changes"
         ),
-        "event": "On-site demo programme with BIM teams on active metro projects",
     },
 }
+
+DETAIL_OPTIONS = [
+    # Original demo products (prefilled)
+    "Leica GS18 GNSS RTK Rover",
+    "IDS GeoRadar ArcSAR slope monitoring radar",
+    "Leica RTC360 3D laser scanner",
+    # Product lines added per manager's list
+    "Hexagon / Leica Total Stations (TS Series)",
+    "Hexagon GNSS (GS Series)",
+    "Leica Reality Capture (RTC360, BLK360, ScanStation)",
+    "Leica Pegasus",
+    "Leica Machine Control",
+    "IDS GeoRadar (GPR)",
+    "IDS GeoRadar (IBIS, ArcSAR, HYDRA)",
+    "Hexagon MinePlan",
+    "Hexagon MineOperate",
+    "Hexagon MineProtect",
+    "Hexagon EAM (Enterprise Asset Management)",
+    "Hexagon SDx / Smart Digital Reality",
+    # Free-text escape hatch (needed when New scenario = Event / Other)
+    "Other (type below)",
+]
 
 # ---------------------------------------------------------------------------
 # Prompts
@@ -468,15 +495,20 @@ commentary, notes or explanations. Return only the edited document."""
 
 
 def build_writer_prompt(inputs: dict, strategy: str) -> str:
-    event_line = (
-        f"- Event tie-in: {inputs['event']}" if inputs.get("event") else
-        "- Event tie-in: none specified; propose a plausible one"
-    )
+    if inputs.get("scenario") == "Event":
+        event_line = (
+            "- Campaign type: EVENT-LED. No specific event was named - propose one "
+            "plausible, relevant Indian industry event or Hexagon activation for this "
+            "sector and make it central to every asset."
+        )
+    else:
+        event_line = "- Event tie-in: none specified; propose a plausible one"
     return f"""Campaign strategy brief:
 {strategy}
 
 Campaign inputs:
-- Product: {inputs['product']}
+- Campaign type: {inputs.get('scenario', 'Product')}
+- Product / detail: {inputs['product']}
 - Sector: {inputs['sector']}
 - Target audience: {inputs['audience']}
 - Campaign goal: {inputs['goal']}
@@ -556,7 +588,8 @@ def run_pipeline(client: Anthropic, inputs: dict, status) -> dict:
         client,
         STRATEGIST_SYSTEM,
         f"""Create a campaign strategy brief for:
-- Product: {inputs['product']}
+- Campaign type: {inputs.get('scenario', 'Product')} (if Event, build the strategy around a plausible event tie-in)
+- Product / detail: {inputs['product']}
 - Sector: {inputs['sector']}
 - Target audience: {inputs['audience']}
 - Campaign goal: {inputs['goal']}
@@ -712,50 +745,68 @@ if client is None:
     )
     st.stop()
 
+# Sidebar form is revealed by the "Start the campaign" button (manager request)
+if "form_open" not in st.session_state:
+    st.session_state["form_open"] = False
+
+scenario_type = "Product"
+product = sector = audience = goal = message = ""
+run = False
+
 with st.sidebar:
-    st.markdown("### Campaign inputs")
-    preset_name = st.selectbox("Demo scenario", list(PRESETS.keys()))
-    preset = PRESETS[preset_name]
-
-    # Field order per manager feedback: Demo scenario -> Sector -> Product.
-    # (Side-by-side was considered but the sidebar is fixed at 30vw; two
-    # columns leave ~13vw per field and the preset names alone truncate.)
-    sector_options = SECTORS + ["Other (type below)"]
-    default_sector = preset.get("sector", SECTORS[0])
-    sector_index = sector_options.index(default_sector) if default_sector in sector_options else 0
-    sector_choice = st.selectbox("Sector", sector_options, index=sector_index)
-    if sector_choice == "Other (type below)":
-        sector = st.text_input("Custom sector / industry")
+    if not st.session_state["form_open"]:
+        if st.button("Start the campaign", use_container_width=True):
+            st.session_state["form_open"] = True
+            st.rerun()
     else:
-        sector = sector_choice
+        st.markdown("### Campaign inputs")
 
-    product = st.text_input("Product / solution", value=preset.get("product", ""))
+        scenario_type = st.selectbox("New scenario", SCENARIO_TYPES)
 
-    audience = st.text_area("Target audience", value=preset.get("audience", ""), height=100)
-    goal = st.text_input("Campaign goal", value=preset.get("goal", ""))
-    message = st.text_area("Key message", value=preset.get("message", ""), height=90)
-    event = st.text_input("Event tie-in (optional)", value=preset.get("event", ""))
+        detail_choice = st.selectbox("Details", DETAIL_OPTIONS)
+        if detail_choice == "Other (type below)":
+            product = st.text_input("Custom detail (product, event or topic)")
+            preset = {}
+        else:
+            product = detail_choice
+            preset = DETAIL_PRESETS.get(detail_choice, {})
 
-    run = st.button("Generate campaign", use_container_width=True)
+        sector_options = SECTORS + ["Other (type below)"]
+        default_sector = preset.get("sector", SECTORS[0])
+        sector_index = sector_options.index(default_sector) if default_sector in sector_options else 0
+        sector_choice = st.selectbox("Sector", sector_options, index=sector_index)
+        if sector_choice == "Other (type below)":
+            sector = st.text_input("Custom sector / industry")
+        else:
+            sector = sector_choice
+
+        # Equal-height boxes per manager feedback
+        audience = st.text_area("Target audience", value=preset.get("audience", ""), height=120)
+        goal = st.text_area("Campaign goal", value=preset.get("goal", ""), height=120)
+        message = st.text_area("Key message", value=preset.get("message", ""), height=120)
+
+        run = st.button("Generate campaign", use_container_width=True)
 
 if run:
     if not all([product.strip(), sector.strip(), audience.strip(), goal.strip(), message.strip()]):
-        st.warning("Please fill all five main inputs (or pick a demo scenario) before generating.")
+        st.warning("Please fill all inputs (or pick a Details option) before generating.")
         st.stop()
 
     inputs = {
+        "scenario": scenario_type,
         "product": product,
         "sector": sector,
         "audience": audience,
         "goal": goal,
         "message": message,
-        "event": event.strip(),
     }
 
     t0 = time.time()
     with st.status("Starting Agent 9…", expanded=False) as status:
         try:
-            result = st.session_state["result"] = run_pipeline(client, inputs, status)
+            result = run_pipeline(client, inputs, status)
+            result["product"] = product  # snapshot for creative cards
+            st.session_state["result"] = result
             status.update(label=f"Campaign generated in {time.time() - t0:.0f}s", state="complete")
         except Exception as exc:  # noqa: BLE001
             status.update(label="Generation failed", state="error")
@@ -792,7 +843,7 @@ if "result" in st.session_state:
                             continue
                         with st.expander(f"🖼️ Creative preview — {label}"):
                             st.markdown(
-                                creative_card_html(product, hook, visual),
+                                creative_card_html(result.get("product", product), hook, visual),
                                 unsafe_allow_html=True,
                             )
     with tabs[-1]:
