@@ -360,6 +360,175 @@ DETAIL_PRESETS = {
             "setup - document site conditions faster than the site changes"
         ),
     },
+    # --- Product lines added per manager's list (July 2026) ---
+    "Hexagon / Leica Total Stations (TS Series)": {
+        "sector": "Surveying & Geospatial",
+        "audience": (
+            "Government survey departments, EPC site engineering teams and "
+            "licensed surveyors still running two-person manual total station "
+            "workflows on layout, stakeout and control jobs"
+        ),
+        "goal": "Drive upgrade enquiries from manual to robotic one-operator workflows and get TS Series specified in survey equipment tenders",
+        "message": (
+            "One surveyor, not two - robotic tracking that holds lock on busy, "
+            "obstructed sites, so stakeout and control work gets done in fewer "
+            "site visits with fewer errors"
+        ),
+    },
+    "Hexagon GNSS (GS Series)": {
+        "sector": "Surveying & Geospatial",
+        "audience": (
+            "Survey departments, town planning bodies and engineering "
+            "consultancies standardising their rover fleets for cadastral, "
+            "corridor and large-area topographic work under tight tender timelines"
+        ),
+        "goal": "Position the GS Series as the standard GNSS fleet for government and consultancy tenders and generate demo requests",
+        "message": (
+            "A GNSS portfolio for every crew and budget - tilt compensation, "
+            "reliable performance under canopy and near structures, and one "
+            "workflow from base-rover to CORS network"
+        ),
+    },
+    "Leica Reality Capture (RTC360, BLK360, ScanStation)": {
+        "sector": "Infrastructure",
+        "audience": (
+            "BIM heads, digital construction leads and plant engineering teams "
+            "at EPC contractors, consultants and owner-operators who need "
+            "as-built, scan-to-BIM and progress documentation at different scales"
+        ),
+        "goal": "Generate scan-to-BIM and as-built capture enquiries by matching the right scanner to each project size",
+        "message": (
+            "A scanner for every job - speed on active sites, portability for "
+            "tight spaces, long range for large structures - all feeding one "
+            "registered point cloud your BIM team can actually use"
+        ),
+    },
+    "Leica Pegasus": {
+        "sector": "Railways",
+        "audience": (
+            "Railway infrastructure divisions, metro rail corporations, road "
+            "authorities and mapping agencies responsible for surveying long "
+            "linear corridors that cannot be shut down for weeks of fieldwork"
+        ),
+        "goal": "Win pilot corridor-mapping projects and position mobile mapping as the default for linear infrastructure surveys",
+        "message": (
+            "Survey-grade corridor capture at operating speed - map kilometres "
+            "per shift instead of weeks per section, without closing the "
+            "corridor or putting crews in the traffic"
+        ),
+    },
+    "Leica Machine Control": {
+        "sector": "Infrastructure",
+        "audience": (
+            "Highway and earthworks EPC contractors, plant & machinery heads "
+            "and project managers on expressway, airport and large grading "
+            "packages where rework and idle machines eat the margin"
+        ),
+        "goal": "Secure machine control retrofit pilots on active highway and earthworks packages",
+        "message": (
+            "The design surface in the operator's cab - grade right the first "
+            "time, cut rework and staking cycles, and keep machines producing "
+            "instead of waiting for the survey crew"
+        ),
+    },
+    "IDS GeoRadar (GPR)": {
+        "sector": "Infrastructure",
+        "audience": (
+            "Utility mapping teams, smart city implementers, road agencies and "
+            "gas / water utilities that excavate in congested urban corridors "
+            "with poor or missing underground utility records"
+        ),
+        "goal": "Generate underground utility mapping enquiries and position GPR surveys as a standard pre-excavation step",
+        "message": (
+            "See below the surface before you dig - locate buried utilities in "
+            "congested corridors, avoid utility strikes and the shutdowns, "
+            "penalties and safety incidents that follow them"
+        ),
+    },
+    "IDS GeoRadar (IBIS, ArcSAR, HYDRA)": {
+        "sector": "Mining",
+        "audience": (
+            "Geotechnical engineers, mine safety officers and monitoring heads "
+            "at open-pit mines, tailings facilities and dam / slope assets where "
+            "movement must be caught before it becomes a failure"
+        ),
+        "goal": "Generate site monitoring assessments across critical slopes, tailings dams and structures",
+        "message": (
+            "Continuous interferometric radar monitoring - millimetre-scale "
+            "movement detection across the full slope face, in all weather, day "
+            "and night, with alarms your control room can act on"
+        ),
+    },
+    "Hexagon MinePlan": {
+        "sector": "Mining",
+        "audience": (
+            "Mine planning heads, geologists and technical services teams at "
+            "Coal India subsidiaries, NMDC and private iron ore, limestone and "
+            "copper operations juggling disconnected planning tools"
+        ),
+        "goal": "Book MinePlan workshops and position it as the single planning platform from geological model to schedule",
+        "message": (
+            "One platform from geological model to production schedule - plans "
+            "built on current data that hold up when the pit changes, instead "
+            "of spreadsheets that are outdated the week they are finished"
+        ),
+    },
+    "Hexagon MineOperate": {
+        "sector": "Mining",
+        "audience": (
+            "Mine operations heads, dispatch teams and production "
+            "superintendents at open-pit operations running large truck-shovel "
+            "fleets without real-time visibility of cycles and idle time"
+        ),
+        "goal": "Win a fleet management pilot by making the invisible production losses in the current operation visible",
+        "message": (
+            "Real-time visibility of every truck, shovel and cycle - find the "
+            "tonnes hiding in queue time, idle time and misassignment, and run "
+            "the same fleet harder without buying another machine"
+        ),
+    },
+    "Hexagon MineProtect": {
+        "sector": "Mining",
+        "audience": (
+            "Mine safety officers, operations heads and compliance leads at "
+            "open-pit operations responding to DGMS direction on proximity "
+            "warning and collision avoidance for heavy mining equipment"
+        ),
+        "goal": "Generate safety assessment enquiries positioned around DGMS collision-avoidance expectations",
+        "message": (
+            "360-degree awareness around every machine - from operator alerts "
+            "to intervention - protecting people and equipment where the "
+            "operator's mirrors and cameras cannot"
+        ),
+    },
+    "Hexagon EAM (Enterprise Asset Management)": {
+        "sector": "Infrastructure",
+        "audience": (
+            "Maintenance directors, plant heads and asset management leads at "
+            "metros, airports, ports and utilities running asset-intensive "
+            "operations on registers, spreadsheets and reactive maintenance"
+        ),
+        "goal": "Book discovery workshops that map the move from reactive maintenance to planned, auditable asset management",
+        "message": (
+            "Assets, work orders, spares and history in one system - move from "
+            "firefighting to planned maintenance, extend asset life, and answer "
+            "every audit with records instead of recollection"
+        ),
+    },
+    "Hexagon SDx / Smart Digital Reality": {
+        "sector": "Infrastructure",
+        "audience": (
+            "Owner-operators, plant digitalisation heads and capital projects "
+            "teams at refineries, chemical plants and large industrial "
+            "facilities whose engineering data is scattered across silos"
+        ),
+        "goal": "Secure a digital twin pilot on one facility as the entry point to enterprise-wide adoption",
+        "message": (
+            "A living digital twin of the facility - engineering data, 3D "
+            "models and documents connected, current and in context, so "
+            "decisions are made on the plant as it is, not as it was designed"
+        ),
+    },
 }
 
 DETAIL_OPTIONS = [
